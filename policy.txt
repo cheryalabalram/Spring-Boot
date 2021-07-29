@@ -1,0 +1,119 @@
+# Mount secrets engines
+path "sys/mounts/*" {
+  capabilities = [ "create", "read", "update", "delete", "list" ]
+}
+
+# Configure the database secrets engine and create roles
+path "database/*" {
+  capabilities = [ "create", "read", "update", "delete", "list" ]
+}
+
+# Configure the database secrets engine and create roles
+path "mysql/*" {
+  capabilities = [ "create", "read", "update", "delete", "list" ]
+}
+
+# Write ACL policies
+path "sys/policies/acl/*" {
+  capabilities = [ "create", "read", "update", "delete", "list" ]
+}
+
+# Manage tokens for verification
+path "auth/token/create" {
+  capabilities = [ "create", "read", "update", "delete", "list", "sudo" ]
+}
+
+
+vault write database/config/mysql \
+     plugin_name=mysql-database-plugin \
+     connection_url="{{username}}:{{password}}@tcp(127.0.0.1:3306)/" \
+     allowed_roles="*" \
+     username="cbalram" \
+     password="-u11gWZhDh8Ygy-P5JwQ"
+     
+
+
+vault write -force database/rotate-root/mysql
+
+Step 3: Create a static role
+
+ALTER USER "{{name}}" WITH PASSWORD '{{password}}';
+Execute the following command to create a static role, education.
+
+
+vault write database/static-roles/devstaticrole \
+    db_name=mysql \
+    rotation_statements="ALTER USER "{{name}}" WITH PASSWORD '{{password}}'" \
+    username="cbalram" \
+    rotation_period=5d
+
+
+
+
+
+spring.applicaton.name=vault-service
+spring.cloud.vault.uri=http://localhost:8200
+spring.cloud.vault.token=s.5kfRqXoX65VNTBekoHyVCoVw
+spring.cloud.vault.generic.enabled=true
+spring.cloud.vault.generic.backend=pe-kv
+spring.cloud.vault.generic.default-context=kv
+
+spring.applicaton.name=vault-service
+spring.cloud.vault.fail-fast: true
+spring.cloud.vault.uri=http://localhost:8200
+spring.cloud.vault.generic.enabled: false
+
+spring.cloud.vault.database.enabled=true
+spring.cloud.vault.username-property = spring.datasource.username
+spring.cloud.vault.password-property = spring.datasource.password
+spring.cloud.vault.lifecycle.enabled = true
+spring.cloud.vault.connection-timeout = 5000
+spring.cloud.vault.read-timeout = 15000
+spring.datasource.url: jdbc:mysql://localhost:3306/balram
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------------------------------------------------------------
+vault write database/config/mysqlconfig \
+    plugin_name=mysql-database-plugin \
+    connection_url="{{username}}:{{password}}@tcp(127.0.0.1:3306)/" \
+    allowed_roles="*" \
+    username="root" \
+    password="May@2021"
+
+vault write database/roles/devrole \
+    db_name=my-mysql-database \
+    creation_statements="CREATE USER '{{name}}'@'%' IDENTIFIED BY '{{password}}';GRANT SELECT ON *.* TO '{{name}}'@'%';" \
+    default_ttl="12h" \
+    max_ttl="24h"
+
+
+
+vault read database/creds/devrole
+
+Key      Value                           
+password bl2XQ7ZBLg-rEJjlJgNW            
+username v-root-devrole-vft3Ulv80qJMuyyvm
+
+
+vault write -force database/rotate-root/my-mysql-database
+
+
+
+
+vault write database/static-roles/devrole \
+    db_name=mysql \
+    rotation_statements="ALTER USER "{{name}}" WITH PASSWORD '{{password}}';" \
+    username="root" \
+    rotation_period=1h
